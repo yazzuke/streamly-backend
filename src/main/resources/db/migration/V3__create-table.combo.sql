@@ -1,0 +1,26 @@
+CREATE TABLE combo (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    price DECIMAL(10, 2) NOT NULL,
+    image_url VARCHAR(512),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE combo_price (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    combo_id BIGINT NOT NULL,
+    months INT NOT NULL,
+    price DECIMAL(10,2) NOT NULL,
+    type ENUM('Pantalla', 'Completa') NOT NULL,
+    FOREIGN KEY (combo_id) REFERENCES combo(id) ON DELETE CASCADE
+);
+
+CREATE TABLE combo_account (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    combo_id BIGINT NOT NULL,
+    account_id BIGINT NOT NULL,
+    FOREIGN KEY (combo_id) REFERENCES combo(id) ON DELETE CASCADE,
+    FOREIGN KEY (account_id) REFERENCES account(id) ON DELETE CASCADE
+);

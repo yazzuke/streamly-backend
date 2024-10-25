@@ -47,6 +47,9 @@ public class Account {
     @Column(name = "image_url")
     private String imageUrl;
 
+    @Column(name = "svg_url")  
+    private String svgUrl;
+
     // Método para definir la fecha de creación antes de persistir
     @PrePersist
     protected void onCreate() {

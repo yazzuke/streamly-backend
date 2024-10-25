@@ -23,4 +23,7 @@ public class ServiceMetadata {
 
     @Column(name = "image_url")
     private String imageUrl;
+
+    @Column(name = "svg_url") // Agregar el SVG URL en los metadatos
+    private String svgUrl;
 }

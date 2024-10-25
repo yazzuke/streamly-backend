@@ -3,6 +3,7 @@ CREATE TABLE account (
     service_name VARCHAR(255) NOT NULL,   
     description TEXT, 
     image_url VARCHAR(512),
+    svg_url VARCHAR(512),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );

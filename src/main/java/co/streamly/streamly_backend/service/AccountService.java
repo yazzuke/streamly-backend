@@ -5,6 +5,7 @@ import co.streamly.streamly_backend.domain.Account.AccountRepository;
 import co.streamly.streamly_backend.domain.AccountPrice.AccountPrice;
 import co.streamly.streamly_backend.domain.AccountPrice.AccountPriceRepository;
 import co.streamly.streamly_backend.domain.AccountPrice.TypeAccount;
+import co.streamly.streamly_backend.dto.AccountAdminDTO;
 import co.streamly.streamly_backend.dto.AccountPriceDTO;
 import co.streamly.streamly_backend.dto.AccountSummaryDTO;
 import co.streamly.streamly_backend.domain.Metadata.ServiceMetadata;
@@ -24,31 +25,32 @@ public class AccountService {
     private final AccountPriceRepository accountPriceRepository;
     private final ServiceMetadataRepository serviceMetadataRepository;
 
-
     // Inyección de dependencia a través del constructor
     @Autowired
-    public AccountService(AccountRepository accountRepository, AccountPriceRepository accountPriceRepository, ServiceMetadataRepository serviceMetadataRepository) {
+    public AccountService(AccountRepository accountRepository, AccountPriceRepository accountPriceRepository,
+            ServiceMetadataRepository serviceMetadataRepository) {
         this.accountRepository = accountRepository;
         this.accountPriceRepository = accountPriceRepository;
         this.serviceMetadataRepository = serviceMetadataRepository;
     }
 
-
     public Account createAccount(Account account) {
         // Buscar metadatos por nombre del servicio
-        Optional<ServiceMetadata> serviceMetadataOpt = serviceMetadataRepository.findByServiceName(account.getServiceName());
+        Optional<ServiceMetadata> serviceMetadataOpt = serviceMetadataRepository
+                .findByServiceName(account.getServiceName());
 
-        // Si se encuentran metadatos, se asignan automáticamente la descripción y la URL de imagen
+        // Si se encuentran metadatos, se asignan automáticamente la descripción, URL de
+        // imagen y URL del SVG
         if (serviceMetadataOpt.isPresent()) {
             ServiceMetadata serviceMetadata = serviceMetadataOpt.get();
             account.setServiceName(serviceMetadata.getServiceName());
             account.setDescription(serviceMetadata.getDescription());
             account.setImageUrl(serviceMetadata.getImageUrl());
+            account.setSvgUrl(serviceMetadata.getSvgUrl());
         }
 
         return accountRepository.save(account);
     }
-
 
     // Método para actualizar una cuenta existente
     public Optional<Account> updateAccount(Long id, Account accountDetails) {
@@ -81,8 +83,8 @@ public class AccountService {
         return accountRepository.findByServiceName(serviceName);
     }
 
-   
-    // Método para obtener todos los precios asociados a una cuenta específica como DTOs
+    // Método para obtener todos los precios asociados a una cuenta específica como
+    // DTOs
     public List<AccountPriceDTO> getPricesByAccountId(Long accountId) {
         List<AccountPrice> prices = accountPriceRepository.findByAccountId(accountId);
         return prices.stream().map(AccountPriceDTO::new).collect(Collectors.toList());
@@ -114,23 +116,30 @@ public class AccountService {
         }).orElse(false);
     }
 
-
     // Método para obtener todas las cuentas con el precio más bajo
     public List<AccountSummaryDTO> getAllAccountsSummaryWithLowestPrice() {
         List<Account> accounts = accountRepository.findAll();
         return accounts.stream().map(account -> {
             Double lowestPrice = accountPriceRepository.findTopByAccountIdOrderByPriceAsc(account.getId())
-                                .map(AccountPrice::getPrice)
-                                .orElse(null);
+                    .map(AccountPrice::getPrice)
+                    .orElse(null);
             return new AccountSummaryDTO(account, lowestPrice);
         }).collect(Collectors.toList());
     }
 
-
     // Método para obtener el precio asociado a una cuenta específica
-     public Optional<AccountPriceDTO> getAccountPrice(Long accountId, int months, TypeAccount type) {
+    public Optional<AccountPriceDTO> getAccountPrice(Long accountId, int months, TypeAccount type) {
         return accountPriceRepository.findByAccountIdAndMonthsAndType(accountId, months, type)
-                                     .map(AccountPriceDTO::new);
+                .map(AccountPriceDTO::new);
     }
-}
 
+     // Método para obtener todas las cuentas con todos sus detalles para el admin
+    public List<AccountAdminDTO> getAllAccountsForAdmin() {
+        List<Account> accounts = accountRepository.findAll();
+        return accounts.stream().map(account -> {
+            List<AccountPriceDTO> prices = getPricesByAccountId(account.getId());
+            return new AccountAdminDTO(account, prices);
+        }).collect(Collectors.toList());
+    }
+    
+}
