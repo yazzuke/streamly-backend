@@ -141,5 +141,28 @@ public class AccountService {
             return new AccountAdminDTO(account, prices);
         }).collect(Collectors.toList());
     }
+
+
+    public Optional<AccountAdminDTO> updateAccountAdmin(Long id, AccountAdminDTO accountDetails) {
+    return accountRepository.findById(id).map(account -> {
+        account.setServiceName(accountDetails.getServiceName());
+        account.setDescription(accountDetails.getDescription());
+        account.setImageUrl(accountDetails.getImageUrl());
+        account.setSvgUrl(accountDetails.getSvgUrl());
+        
+        // Aquí actualizamos los precios
+        accountDetails.getPrices().forEach(priceDTO -> {
+            Optional<AccountPrice> priceOptional = accountPriceRepository.findById(priceDTO.getId());
+            priceOptional.ifPresent(price -> {
+                price.setPrice(priceDTO.getPrice());
+                accountPriceRepository.save(price);
+            });
+        });
+
+        Account updatedAccount = accountRepository.save(account);
+        return new AccountAdminDTO(updatedAccount, accountDetails.getPrices());
+    });
+}
+
     
 }

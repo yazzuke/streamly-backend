@@ -25,20 +25,25 @@ import java.util.stream.Collectors;
 @Service
 public class ComboService {
 
+    private final AccountService accountService; // Asegurarse de que sea final y esté inyectado correctamente
     private final ComboRepository comboRepository;
     private final ComboPriceRepository comboPriceRepository;
     private final ServiceMetadataRepository serviceMetadataRepository;
     private final AccountRepository accountRepository;
 
     @Autowired
-    public ComboService(ComboRepository comboRepository,
+    public ComboService(
+            ComboRepository comboRepository,
             ComboPriceRepository comboPriceRepository,
             ServiceMetadataRepository serviceMetadataRepository,
-            AccountRepository accountRepository) {
+            AccountRepository accountRepository,
+            AccountService accountService // Agregar AccountService como dependencia al constructor
+    ) {
         this.comboRepository = comboRepository;
         this.comboPriceRepository = comboPriceRepository;
         this.serviceMetadataRepository = serviceMetadataRepository;
         this.accountRepository = accountRepository;
+        this.accountService = accountService; // Inicializar AccountService
     }
 
     // Crear un nuevo combo
@@ -138,9 +143,7 @@ public class ComboService {
         return comboRepository.findAll();
     }
 
-    @Autowired
-    private AccountService accountService;
-
+    // Método para obtener toda la información para el admin
     public List<ComboAdminDTO> getAllCombosForAdmin() {
         List<Combo> combos = comboRepository.findAll();
         return combos.stream().map(combo -> {
@@ -152,6 +155,29 @@ public class ComboService {
             }).collect(Collectors.toList());
             return new ComboAdminDTO(combo, prices, accountAdminDTOs);
         }).collect(Collectors.toList());
+    }
+
+    public Optional<ComboAdminDTO> updateComboAdmin(Long id, ComboAdminDTO comboDetails) {
+        return comboRepository.findById(id).map(combo -> {
+            combo.setName(comboDetails.getName());
+            combo.setDescription(comboDetails.getDescription());
+            combo.setImageUrl(comboDetails.getImageUrl());
+            // Aquí actualizamos los precios
+            comboDetails.getPrices().forEach(priceDTO -> {
+                Optional<ComboPrice> priceOptional = comboPriceRepository.findById(priceDTO.getId());
+                priceOptional.ifPresent(price -> {
+                    price.setPrice(priceDTO.getPrice());
+                    comboPriceRepository.save(price);
+                });
+            });
+            Combo updatedCombo = comboRepository.save(combo);
+            List<ComboPrice> updatedPrices = comboPriceRepository.findByComboId(updatedCombo.getId());
+            List<AccountAdminDTO> updatedAccounts = updatedCombo.getAccounts().stream()
+                    .map(account -> new AccountAdminDTO(account, accountService.getPricesByAccountId(account.getId())))
+                    .collect(Collectors.toList());
+
+            return new ComboAdminDTO(updatedCombo, updatedPrices, updatedAccounts);
+        });
     }
 
 }

@@ -1,6 +1,6 @@
 package co.streamly.streamly_backend.domain.Metadata;
 
-import co.streamly.streamly_backend.domain.Metadata.*;
+
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
