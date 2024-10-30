@@ -63,6 +63,11 @@ public class AccountService {
     // Método para eliminar una cuenta por ID
     public boolean deleteAccount(Long id) {
         return accountRepository.findById(id).map(account -> {
+            // Eliminar todos los precios asociados a la cuenta
+            List<AccountPrice> prices = accountPriceRepository.findByAccountId(id);
+            prices.forEach(accountPriceRepository::delete);
+
+            // Luego, eliminar la cuenta
             accountRepository.delete(account);
             return true;
         }).orElse(false);
@@ -133,7 +138,7 @@ public class AccountService {
                 .map(AccountPriceDTO::new);
     }
 
-     // Método para obtener todas las cuentas con todos sus detalles para el admin
+    // Método para obtener todas las cuentas con todos sus detalles para el admin
     public List<AccountAdminDTO> getAllAccountsForAdmin() {
         List<Account> accounts = accountRepository.findAll();
         return accounts.stream().map(account -> {
@@ -142,27 +147,25 @@ public class AccountService {
         }).collect(Collectors.toList());
     }
 
-
     public Optional<AccountAdminDTO> updateAccountAdmin(Long id, AccountAdminDTO accountDetails) {
-    return accountRepository.findById(id).map(account -> {
-        account.setServiceName(accountDetails.getServiceName());
-        account.setDescription(accountDetails.getDescription());
-        account.setImageUrl(accountDetails.getImageUrl());
-        account.setSvgUrl(accountDetails.getSvgUrl());
-        
-        // Aquí actualizamos los precios
-        accountDetails.getPrices().forEach(priceDTO -> {
-            Optional<AccountPrice> priceOptional = accountPriceRepository.findById(priceDTO.getId());
-            priceOptional.ifPresent(price -> {
-                price.setPrice(priceDTO.getPrice());
-                accountPriceRepository.save(price);
+        return accountRepository.findById(id).map(account -> {
+            account.setServiceName(accountDetails.getServiceName());
+            account.setDescription(accountDetails.getDescription());
+            account.setImageUrl(accountDetails.getImageUrl());
+            account.setSvgUrl(accountDetails.getSvgUrl());
+
+            // Aquí actualizamos los precios
+            accountDetails.getPrices().forEach(priceDTO -> {
+                Optional<AccountPrice> priceOptional = accountPriceRepository.findById(priceDTO.getId());
+                priceOptional.ifPresent(price -> {
+                    price.setPrice(priceDTO.getPrice());
+                    accountPriceRepository.save(price);
+                });
             });
+
+            Account updatedAccount = accountRepository.save(account);
+            return new AccountAdminDTO(updatedAccount, accountDetails.getPrices());
         });
+    }
 
-        Account updatedAccount = accountRepository.save(account);
-        return new AccountAdminDTO(updatedAccount, accountDetails.getPrices());
-    });
-}
-
-    
 }

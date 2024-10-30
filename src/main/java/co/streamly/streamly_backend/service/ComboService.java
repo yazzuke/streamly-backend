@@ -127,6 +127,10 @@ public class ComboService {
     // Eliminar un combo específico
     public boolean deleteCombo(Long id) {
         return comboRepository.findById(id).map(combo -> {
+
+            // Eliminar todos los precios asociados al combo
+            List<ComboPrice> prices = comboPriceRepository.findByComboId(combo.getId());
+            prices.forEach(comboPriceRepository::delete);
             comboRepository.delete(combo);
             return true;
         }).orElse(false);
