@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +33,7 @@ public class ProductController {
         this.accountService = accountService;
         this.comboService = comboService;
     }
+
 
     @GetMapping("/allproducts")
     public ResponseEntity<List<Object>> getAllProducts() {
@@ -58,6 +60,7 @@ public class ProductController {
     }
 
     // Endpoint para actualizar un producto (cuenta o combo)
+
 
     @PatchMapping("/admin/products/{id}")
     public ResponseEntity<Object> updateProduct(@PathVariable Long id, @RequestBody ProductWrapper productWrapper) {

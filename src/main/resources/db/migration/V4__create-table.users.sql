@@ -3,7 +3,7 @@ CREATE TABLE users (
     firebase_uid VARCHAR(255) NOT NULL UNIQUE, 
     email VARCHAR(255) NOT NULL UNIQUE,
     display_name VARCHAR(255),
-    role ENUM('ADMIN', 'USER') NOT NULL DEFAULT 'USER',
+    role VARCHAR(255),  
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     photo_url VARCHAR(255)
 );
