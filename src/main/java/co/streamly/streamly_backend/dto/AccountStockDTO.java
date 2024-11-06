@@ -10,9 +10,8 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AccountStockDTO {
-    private Long id;           // Agregar el campo id
+    private Long id;    
     private String serviceName;
-    private String imageUrl;
     private String svgUrl;
 
   
